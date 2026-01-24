@@ -16,7 +16,7 @@
     "nodemailer": "^7.0.12",
     "nodemon": "^3.1.11",
     "unix-crypt-td-js": "^1.1.4",
-    "pg": "^8.12.0"      // ✅ ADD THIS LINE
+    "pg": "^8.12.0"      
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.10"
