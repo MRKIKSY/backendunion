@@ -25,21 +25,11 @@ const app = express();
 ======================= */
 app.use(express.json());
 
-const allowedOrigins = [
-  "https://frontend-xm7h.onrender.com",
-  "http://localhost:3000",
-];
-
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
+    origin: "https://frontend-xm7h.onrender.com",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
@@ -51,14 +41,14 @@ app.use("/", userRoutes);
 app.use("/admin", adminRoutes);
 app.use("/invest", investRoutes);
 
-// Routes requiring authentication
+// Protected route
 app.use("/remind", auth, remindRoute);
 
 // Other routes
 app.use("/notify-admin", notifyAdminRoute);
-app.use("/invest", investCancelRoute); // cancel investment
-app.use("/invest/admin", adminApproveInvestment); // approve investment
-app.use("/admin", adminApproveWithdrawal); // approve withdrawal
+app.use("/invest", investCancelRoute);
+app.use("/invest/admin", adminApproveInvestment);
+app.use("/admin", adminApproveWithdrawal);
 app.use("/pay", payRoutes);
 
 /* =======================
@@ -71,7 +61,7 @@ mongoose
   .then(() => {
     console.log("✅ MongoDB connected");
 
-    // 🔥 Start cron ONLY after DB is ready
+    // Start cron AFTER DB connects
     require("./cron/investmentCron");
 
     app.listen(PORT, () => {
