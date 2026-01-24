@@ -1,6 +1,6 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const cors = require("cors");
+const { Pool } = require("pg");
 require("dotenv").config();
 
 // Routes
@@ -34,6 +34,28 @@ app.use(
 );
 
 /* =======================
+   PostgreSQL Connection
+======================= */
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false, // REQUIRED on Render
+  },
+});
+
+// Make pool available everywhere
+app.set("db", pool);
+
+// Test DB connection
+pool
+  .query("SELECT 1")
+  .then(() => console.log("✅ PostgreSQL connected"))
+  .catch((err) => {
+    console.error("❌ PostgreSQL connection error:", err);
+    process.exit(1);
+  });
+
+/* =======================
    Routes
 ======================= */
 app.use("/auth", authRoutes);
@@ -41,7 +63,7 @@ app.use("/", userRoutes);
 app.use("/admin", adminRoutes);
 app.use("/invest", investRoutes);
 
-// Protected route
+// Protected routes
 app.use("/remind", auth, remindRoute);
 
 // Other routes
@@ -52,23 +74,10 @@ app.use("/admin", adminApproveWithdrawal);
 app.use("/pay", payRoutes);
 
 /* =======================
-   MongoDB + Server Start
+   Start Server
 ======================= */
 const PORT = process.env.PORT || 8000;
 
-mongoose
-  .connect(process.env.MONGO_URL)
-  .then(() => {
-    console.log("✅ MongoDB connected");
-
-    // Start cron AFTER DB connects
-    require("./cron/investmentCron");
-
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error("❌ MongoDB connection error:", err);
-    process.exit(1);
-  });
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
